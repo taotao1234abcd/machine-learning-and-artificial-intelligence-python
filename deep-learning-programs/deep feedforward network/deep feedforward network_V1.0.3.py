@@ -144,4 +144,3 @@ data_test_y_numpy = data_scaler_y.inverse_transform(data_test_y.data.cpu().numpy
 test_output_numpy = data_scaler_y.inverse_transform(test_output.data.cpu().numpy())
 test_mean_error = np.mean(abs((test_output_numpy - data_test_y_numpy)/data_test_y_numpy))
 print('平均预测误差:', test_mean_error)
-

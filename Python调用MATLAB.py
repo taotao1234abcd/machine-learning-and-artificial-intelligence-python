@@ -1,8 +1,8 @@
 
 
-# 工程需要使用本地环境的Python，虚拟环境的Python不行
+# 工程需要使用本地环境的 Python，虚拟环境的 Python 不行
 #
-# 将包含 Python 解释器的文件夹添加到您的路径（如果尚未在路径中）
+# 将包含 Python 解释器的文件夹添加到您的 MATLAB 的路径（如果尚未在路径中）
 
 # 在 MATLAB 命令提示符下
 # cd (fullfile(matlabroot,'extern','engines','python'))
@@ -48,9 +48,9 @@ print(time_end - time_start)
 
 
 
-# 从Python调用matlab函数
+# 从 Python 调用 MATLAB 函数
 
-# 使用引擎从 Python 调用 Matlab 的 sqrt 函数
+# 使用引擎从 Python 调用 MATLAB 的 sqrt 函数
 # sqrt import matlab.engine
 # eng = matlab.engine.start_matlab()
 # ret = eng.sqrt(4.0)
@@ -61,7 +61,7 @@ print(time_end - time_start)
 
 #
 #
-# 将数组放入Matlab工作区
+# 将数组放入 MATLAB 工作区
 
 # 在 Python 中创建一个数组, 并将其放入 MATLAB 工作区。
 # import matlab.engine
@@ -70,12 +70,12 @@ print(time_end - time_start)
 # # px是一个 matlab 数组, 但eng.linspace其返回给 python。
 # # 要在 MATLAB 中使用它, 请将阵列放入 MATLAB 工作区。
 # eng.workspace['mx'] = px
-# 将条目添加到引擎workspace字典时, 也会创建一个 matlab 变量。
+# 将条目添加到引擎 workspace 字典时, 也会创建一个 matlab 变量。
 # 引擎将数据转换为 MATLAB 数据类型。
 #
 #
 #
-# 从Matlab工作区获取数据 
+# 从 MATLAB 工作区获取数据 
 
 # 从 MATLAB 工作区获取pi , 并将其复制到 python 变量。
 # import matlab.engine

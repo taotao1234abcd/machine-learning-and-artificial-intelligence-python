@@ -1,4 +1,4 @@
-# Machine Learning Programs (Python)
+# Machine Learning and Deep Learning Programs (Python)
 
 S.T. ZHANG
 

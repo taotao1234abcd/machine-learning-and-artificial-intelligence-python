@@ -13,6 +13,9 @@ import torchvision
 torch.manual_seed(1)
 
 
+USE_FP16 = False  # 模型是否使用半精度浮点数(FP16)
+
+
 def show_mnist(images, labels):
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
     for f, img, lbl in zip(figs, images, labels):
@@ -136,6 +139,10 @@ loss_func = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
+if USE_FP16 == True:
+    from apex import amp
+    net, optimizer = amp.initialize(net, optimizer, opt_level="O1") # 这里是“欧一”，不是“零一”
+
 
 
 def evaluate_accuracy(data_iter, net):
@@ -167,7 +174,13 @@ for epoch in range(5):
         prediction = net(b_x)[0]
         loss = loss_func(prediction, b_y.squeeze())   # cross entropy loss
         optimizer.zero_grad()           # clear gradients for this training step
-        loss.backward()                 # backpropagation, compute gradients
+
+        if USE_FP16 == False:
+            loss.backward()                 # backpropagation, compute gradients
+        else:
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
+
         optimizer.step()                # apply gradients
 
         net.eval()

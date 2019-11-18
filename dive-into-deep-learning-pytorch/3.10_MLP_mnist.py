@@ -46,7 +46,7 @@ num_inputs = 784
 num_outputs = 10
 
 
-batch_size = 256
+batch_size = 128
 
 # 将训练数据的特征和标签组合
 dataset = Data.TensorDataset(train_x, train_y)
@@ -122,3 +122,4 @@ titles = [name[int(true)] + '\n' + name[int(pred)] for true, pred in zip(true_la
 show_mnist(b_x[0:10].cpu(), titles[0:10])
 show_mnist(b_x[10:20].cpu(), titles[10:20])
 show_mnist(b_x[20:30].cpu(), titles[20:30])
+

@@ -46,7 +46,7 @@ num_inputs = 784
 num_outputs = 10
 
 
-batch_size = 256
+batch_size = 32
 
 # 将训练数据的特征和标签组合
 dataset = Data.TensorDataset(train_x, train_y)
@@ -68,7 +68,7 @@ net = nn.Sequential(
 
 
 loss_func = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 
 
 time_begin = time.time()
@@ -84,7 +84,6 @@ for epoch in range(1):
         loss.backward()                 # backpropagation, compute gradients
         optimizer.step()                # apply gradients
 
-
         prediction = net(test_x)
         pred_y = torch.max(prediction, 1)[1].cuda().data
         accuracy = torch.sum(pred_y == test_y.squeeze()).type(torch.FloatTensor) / test_y.size(0)
@@ -95,21 +94,20 @@ for epoch in range(1):
         loss_list.append(loss.data.cpu().numpy().tolist())
         accuracy_list.append(accuracy)
 
-
-        plt.subplot(211)
-        plt.plot(step_all_list, loss_list, lw=1)
-        plt.xlabel('Steps')
-        plt.ylabel('Loss')
-        # plt.ylim(0, 0.5)
-
-        plt.subplot(212)
-        plt.plot(step_all_list, accuracy_list, lw=1, color='red')
-        plt.xlabel('Steps')
-        plt.ylabel('Accuracy')
-        # plt.ylim(0.9, 1)
-        plt.pause(0.01)
-
         step_all += 1
+
+    plt.subplot(211)
+    plt.plot(step_all_list, loss_list, lw=1)
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    # plt.ylim(0, 0.5)
+
+    plt.subplot(212)
+    plt.plot(step_all_list, accuracy_list, lw=1, color='red')
+    plt.xlabel('Steps')
+    plt.ylabel('Accuracy')
+    # plt.ylim(0.9, 1)
+    plt.pause(0.01)
 
 
 true_labels = b_y.cpu().numpy()[:, 0]
@@ -121,3 +119,4 @@ titles = [name[int(true)] + '\n' + name[int(pred)] for true, pred in zip(true_la
 show_mnist(b_x[0:10].cpu(), titles[0:10])
 show_mnist(b_x[10:20].cpu(), titles[10:20])
 show_mnist(b_x[20:30].cpu(), titles[20:30])
+

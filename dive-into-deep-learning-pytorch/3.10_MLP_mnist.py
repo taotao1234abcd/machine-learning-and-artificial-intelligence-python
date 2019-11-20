@@ -2,8 +2,8 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.rcParams['font.family'] = 'SimHei'
+plt.rcParams['font.sans-serif']=['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus']=False  # 用来正常显示负号
 import pandas as pd
 import torch
 from torch import nn

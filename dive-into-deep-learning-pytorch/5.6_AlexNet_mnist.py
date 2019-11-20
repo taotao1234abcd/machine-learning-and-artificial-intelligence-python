@@ -12,6 +12,14 @@ import torchvision
 
 torch.manual_seed(1)
 
+import sys, os
+# Disable
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+# Enable
+def enablePrint():
+    sys.stdout = sys.__stdout__
+
 
 USE_FP16 = False  # 模型是否使用半精度浮点数(FP16)
 
@@ -139,9 +147,12 @@ loss_func = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
+
+blockPrint()
 if USE_FP16 == True:
     from apex import amp
     net, optimizer = amp.initialize(net, optimizer, opt_level="O1") # 这里是“欧一”，不是“零一”
+enablePrint()
 
 
 

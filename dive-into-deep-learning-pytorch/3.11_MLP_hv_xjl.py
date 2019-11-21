@@ -71,7 +71,7 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
     blockPrint()
     if USE_FP16 == True:
         from apex import amp
-        net, optimizer = amp.initialize(net, optimizer, opt_level="O2")  # 这里是“欧一”，不是“零一”
+        net, optimizer = amp.initialize(net, optimizer, opt_level="O2")  # 这里是“欧2”，不是“零2”，使用 O1 更稳健
     enablePrint()
 
     time_begin = time.time()

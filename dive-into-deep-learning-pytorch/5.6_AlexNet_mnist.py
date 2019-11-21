@@ -151,7 +151,7 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 blockPrint()
 if USE_FP16 == True:
     from apex import amp
-    net, optimizer = amp.initialize(net, optimizer, opt_level="O1") # 这里是“欧一”，不是“零一”
+    net, optimizer = amp.initialize(net, optimizer, opt_level="O2")  # 这里是“欧2”，不是“零2”，使用 O1 更稳健
 enablePrint()
 
 

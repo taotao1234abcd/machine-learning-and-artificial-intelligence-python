@@ -12,17 +12,6 @@ import torchvision
 
 torch.manual_seed(1)
 
-import sys, os
-# Disable
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-# Enable
-def enablePrint():
-    sys.stdout = sys.__stdout__
-
-
-USE_FP16 = False  # 模型是否使用半精度浮点数(FP16)
-
 
 def show_mnist(images, labels):
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
@@ -77,6 +66,7 @@ def tensors_resize(data, size):
 
 
 batch_size = 64
+
 
 # 将训练数据的特征和标签组合
 dataset = Data.TensorDataset(train_x, train_y)
@@ -148,14 +138,6 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
 
-blockPrint()
-if USE_FP16 == True:
-    from apex import amp
-    net, optimizer = amp.initialize(net, optimizer, opt_level="O2")  # 这里是“欧2”，不是“零2”，使用 O1 更稳健
-enablePrint()
-
-
-
 def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
     with torch.no_grad():
@@ -176,7 +158,7 @@ loss_list = []
 accuracy_list = []
 step_all_list = []
 step_all = 0
-for epoch in range(5):
+for epoch in range(3):
     scheduler.step()
     for step, (b_x, b_y) in enumerate(data_iter):   # gives batch data, normalize x when iterate train_loader
 
@@ -185,13 +167,7 @@ for epoch in range(5):
         prediction = net(b_x)[0]
         loss = loss_func(prediction, b_y.squeeze())   # cross entropy loss
         optimizer.zero_grad()           # clear gradients for this training step
-
-        if USE_FP16 == False:
-            loss.backward()                 # backpropagation, compute gradients
-        else:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward()
-
+        loss.backward()                 # backpropagation, compute gradients
         optimizer.step()                # apply gradients
 
         net.eval()
@@ -200,18 +176,19 @@ for epoch in range(5):
         pred_y = torch.max(prediction, 1)[1].cuda().data
         accuracy = torch.sum(pred_y == b_y.squeeze()).type(torch.FloatTensor) / b_y.size(0)
         time_end = time.time()
-        print('Epoch:%3d' % (epoch + 1), '| step:%5d' % (step + 1), '| train loss: %.4f' % loss.data.cpu().numpy(),
-              '| train accuracy: %.4f' % accuracy, '| time: %.3f' % (time_end - time_begin), 's')
+        # print('Epoch:%3d' % (epoch + 1), '| step:%5d' % (step + 1), '| train loss: %.4f' % loss.data.cpu().numpy(),
+        #       '| train accuracy: %.4f' % accuracy, '| time: %.3f' % (time_end - time_begin), 's')
         step_all_list.append(int(step_all + 1))
         loss_list.append(loss.data.cpu().numpy().tolist())
         accuracy_list.append(accuracy)
 
         step_all += 1
 
-    accuracy = evaluate_accuracy(test_iter, net)
+    train_accuracy = evaluate_accuracy(data_iter, net)
+    test_accuracy = evaluate_accuracy(test_iter, net)
     time_end = time.time()
-    print('Epoch:%3d' % (epoch + 1), '| step:%5d' % (step + 1), '| train loss: %.4f' % loss.data.cpu().numpy(),
-          '| test accuracy: %.4f' % accuracy, '| time: %.3f' % (time_end - time_begin), 's')
+    print('Epoch:%3d' % (epoch + 1), '| train accuracy: %.4f' % train_accuracy,
+          '| test accuracy: %.4f' % test_accuracy, '| time: %.3f' % (time_end - time_begin), 's')
 
     plt.subplot(211)
     plt.plot(step_all_list, loss_list, lw=1)

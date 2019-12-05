@@ -30,8 +30,22 @@ def show_images(images, labels):
             f.axes.get_yaxis().set_visible(False)
     plt.show()
 
-def get_image(b_x_index):
+def get_image(b_x_index, train=False, visual=False):
     # 使用PIL读取
+    crop = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(size=(32, 32)),
+        torchvision.transforms.CenterCrop((30, 30)),
+        torchvision.transforms.Resize(size=(32, 32)),
+    ])
+    n_chose_w = 29 + int(np.random.rand() * 3)
+    n_chose_h = 29 + int(np.random.rand() * 3)
+    modify = torchvision.transforms.Compose([
+        torchvision.transforms.Resize((32, 32)),
+        torchvision.transforms.RandomCrop((n_chose_w, n_chose_h)),
+        torchvision.transforms.Resize((32, 32)),
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.ColorJitter(0.1, 0.1, 0.1),
+    ])
     loader = torchvision.transforms.ToTensor()
     b_x_index = np.array(b_x_index)
     b_x_index = b_x_index.reshape(-1)
@@ -39,8 +53,14 @@ def get_image(b_x_index):
     for i in range(len(b_x_index)):
         img_index = b_x_index[i]
         img_pil = Image.open('data/CIFAR-10/train/' + str(img_index) + '.png')         # PIL.Image.Image对象
+        if train == True:
+            img_pil = modify(img_pil)
+        else:
+            img_pil = crop(img_pil)
         # img = np.array(img_pil)   # (H x W x C), (32 x 32 x 3), [0, 255], RGB
         img = loader(img_pil)   # (C x H x W), (3 x 32 x 32), [0, 1]
+        if visual == False:
+            img = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(img)
         bx[i] = img
     bx = bx.cuda()
     return bx
@@ -132,6 +152,7 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
 
 
     net = CNN().cuda()
+    # print(net)
 
     loss_func = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
@@ -145,7 +166,7 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
     for epoch in range(num_epochs):
         scheduler.step()
         for step, (b_x, b_y) in enumerate(data_iter):  # gives batch data, normalize x when iterate data_loader
-            b_x = get_image(b_x)
+            b_x = get_image(b_x, train=True)
             prediction = net(b_x)[0]
             loss = loss_func(prediction, b_y.squeeze())  # cross entropy loss
             optimizer.zero_grad()  # clear gradients for this training step
@@ -161,19 +182,21 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
             train_accuracy_list.append(train_accuracy)
 
             step_all += 1
-        print('Epoch:%3d' % (epoch + 1), '| train loss: %.4f' % loss.data.cpu().numpy(), '| train accuracy: %.4f' % train_accuracy, '| time: %.3f' % (time_end - time_begin), 's')
+        print('Epoch:%3d' % (epoch + 1), '| batch train loss: %.4f' % loss.data.cpu().numpy(),
+              '| batch train accuracy: %.4f' % train_accuracy, '| time: %.3f' % (time_end - time_begin), 's')
 
     plt.plot(train_accuracy_list, lw=1)
     plt.xlabel('Steps')
-    plt.legend(['Train Accuracy'])
+    plt.legend(['Batch Train Accuracy'])
     plt.show()
     plt.pause(0.01)
 
     accuracy_train = evaluate_accuracy(data_iter, net)
     accuracy_test = evaluate_accuracy(test_iter, net)
 
-    for step, (b_x, b_y) in enumerate(data_iter):
-        b_x = get_image(b_x)
+    for step, (b_x_i, b_y) in enumerate(test_iter):
+        b_x = get_image(b_x_i)
+        b_x_v = get_image(b_x_i, visual=True)
         break
     true_labels = b_y.cpu().numpy()[:, 0]
     pred_labels = net(b_x)[0].argmax(dim=1).cpu().numpy()
@@ -181,8 +204,8 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
     name = ['飞机', '汽车', '鸟', '猫', '鹿', '狗', '蛙', '马', '船', '卡车']
     titles = [name[int(true)] + '\n' + name[int(pred)] for true, pred in zip(true_labels, pred_labels)]
 
-    show_images(b_x[0:60].cpu(), titles[0:60])
-    show_images(b_x[60:120].cpu(), titles[60:120])
+    show_images(b_x_v[0:60].cpu(), titles[0:60])
+    show_images(b_x_v[60:120].cpu(), titles[60:120])
 
     return accuracy_train, accuracy_test
 

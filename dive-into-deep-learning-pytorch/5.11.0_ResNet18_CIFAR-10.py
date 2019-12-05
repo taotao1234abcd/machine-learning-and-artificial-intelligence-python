@@ -4,22 +4,22 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import nn
+import torch.nn.functional as F
 import torch.utils.data as Data
 import torchvision
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
-
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
-plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+plt.rcParams['font.sans-serif']=['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus']=False  # 用来正常显示负号
 from PIL import Image
 
 
 def show_images(images, labels):
-    _, figs = plt.subplots(6, int(len(images) / 6), figsize=(12, 12))
+    _, figs = plt.subplots(6, int(len(images)/6), figsize=(12, 12))
     for i in range(6):
-        for j in range(int(len(images) / 6)):
-            n = int(len(images) / 6) * i + j
+        for j in range(int(len(images)/6)):
+            n = int(len(images)/6) * i + j
             f = figs[i, j]
             img = images[n]
             lbl = labels[n]
@@ -31,7 +31,6 @@ def show_images(images, labels):
             f.axes.get_xaxis().set_visible(False)
             f.axes.get_yaxis().set_visible(False)
     plt.show()
-
 
 def get_image(b_x_index, train=False, visual=False):
     # 使用PIL读取
@@ -81,44 +80,48 @@ data_x = torch.from_numpy(data_x).type(torch.int64)
 data_y = torch.from_numpy(data_y).type(torch.int64).cuda()
 
 
-class AlexNet(nn.Module):
-    def __init__(self):
-        super(AlexNet, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(3, 96, 11, 4),  # in_channels, out_channels, kernel_size, stride, padding
-            nn.ReLU(),
-            nn.MaxPool2d(3, 2),  # kernel_size, stride
-            # 减小卷积窗口，使用填充为2来使得输入与输出的高和宽一致，且增大输出通道数
-            nn.Conv2d(96, 256, 5, 1, 2),
-            nn.ReLU(),
-            nn.MaxPool2d(3, 2),
-            # 连续3个卷积层，且使用更小的卷积窗口。除了最后的卷积层外，进一步增大了输出通道数。
-            # 前两个卷积层后不使用池化层来减小输入的高和宽
-            nn.Conv2d(256, 384, 3, 1, 1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, 1, 1),
-            nn.ReLU(),
-            nn.Conv2d(384, 256, 3, 1, 1),
-            nn.ReLU(),
-            nn.MaxPool2d(3, 2)
-        )
-        # 这里全连接层的输出个数比LeNet中的大数倍。使用丢弃层来缓解过拟合
-        self.fc = nn.Sequential(
-            nn.Linear(256 * 5 * 5, 4096),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(4096, 4096),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            # 输出层
-            nn.Linear(4096, 10),
-        )
+class Residual(nn.Module):  # 残差块
+    def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1):
+        super(Residual, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        if use_1x1conv:
+            self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride)
+        else:
+            self.conv3 = None
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.bn2 = nn.BatchNorm2d(out_channels)
 
+    def forward(self, X):
+        Y = F.relu(self.bn1(self.conv1(X)))
+        Y = self.bn2(self.conv2(Y))
+        if self.conv3:
+            X = self.conv3(X)
+        return F.relu(Y + X)
+
+def resnet_block(in_channels, out_channels, num_residuals, first_block=False):
+    if first_block:
+        assert in_channels == out_channels # 第一个模块的通道数同输入通道数一致
+    blk = []
+    for i in range(num_residuals):
+        if i == 0 and not first_block:
+            blk.append(Residual(in_channels, out_channels, use_1x1conv=True, stride=2))
+        else:
+            blk.append(Residual(out_channels, out_channels))
+    return nn.Sequential(*blk)
+
+class GlobalAvgPool2d(nn.Module):
+    # 全局平均池化层可通过将池化窗口形状设置成输入的高和宽实现
+    def __init__(self):
+        super(GlobalAvgPool2d, self).__init__()
     def forward(self, x):
-        feature = self.conv(x)
-        feature = feature.view(x.shape[0], -1)
-        output = self.fc(feature)
-        return output, feature
+        return F.avg_pool2d(x, kernel_size=x.size()[2:])
+
+class FlattenLayer(torch.nn.Module):
+    def __init__(self):
+        super(FlattenLayer, self).__init__()
+    def forward(self, x): # x shape: (batch, *, *, ...)
+        return x.view(x.shape[0], -1)
 
 
 def evaluate_accuracy(data_iter, net):
@@ -127,7 +130,7 @@ def evaluate_accuracy(data_iter, net):
         for x, y in data_iter:
             x = get_image(x)
             net.eval()
-            prediction = net(x)[0]
+            prediction = net(x)
             net.train()
             pred_y = torch.max(prediction, 1)[1].cuda().data
             acc_sum += torch.sum(pred_y == y.squeeze()).type(torch.FloatTensor)
@@ -136,6 +139,7 @@ def evaluate_accuracy(data_iter, net):
 
 
 def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_size):
+
     # 将训练数据的特征和标签组合
     dataset = Data.TensorDataset(x_train, y_train)
     # 把 dataset 放入 DataLoader
@@ -147,6 +151,7 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
     )
     # num_workers=0 表示不用额外的进程来加速读取数据
 
+
     testset = Data.TensorDataset(x_valid, y_valid)
     test_iter = Data.DataLoader(
         dataset=testset,  # torch TensorDataset format
@@ -155,8 +160,18 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
         num_workers=0,  # 多线程来读数据, 注意多线程需要在 if __name__ == '__main__': 函数中运行
     )
 
-    net = AlexNet().cuda()
-    # print(net)
+    net= nn.Sequential(
+        nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3),
+        nn.BatchNorm2d(64),
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+    net.add_module("resnet_block1", resnet_block(64, 64, 2, first_block=True))
+    net.add_module("resnet_block2", resnet_block(64, 128, 2))
+    net.add_module("resnet_block3", resnet_block(128, 256, 2))
+    net.add_module("resnet_block4", resnet_block(256, 512, 2))
+    net.add_module("global_avg_pool", GlobalAvgPool2d())  # GlobalAvgPool2d的输出: (Batch, 512, 1, 1)
+    net.add_module("fc", nn.Sequential(FlattenLayer(), nn.Linear(512, 10)))
+    net = net.cuda()
 
     loss_func = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
@@ -172,7 +187,7 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
         for step, (b_x, b_y) in enumerate(data_iter):  # gives batch data, normalize x when iterate data_loader
             b_x = get_image(b_x, train=True)
             net.eval()
-            prediction = net(b_x)[0]
+            prediction = net(b_x)
             net.train()
             loss = loss_func(prediction, b_y.squeeze())  # cross entropy loss
             optimizer.zero_grad()  # clear gradients for this training step
@@ -206,8 +221,10 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
         break
     true_labels = b_y.cpu().numpy()[:, 0]
     net.eval()
-    pred_labels = net(b_x)[0].argmax(dim=1).cpu().numpy()
+    prediction = net(b_x)
     net.train()
+    pred_labels = torch.max(prediction, 1)[1].cuda().data
+
     # titles = [str(true) + '\n' + str(pred) for true, pred in zip(true_labels, pred_labels)]
     name = ['飞机', '汽车', '鸟', '猫', '鹿', '狗', '蛙', '马', '船', '卡车']
     titles = [name[int(true)] + '\n' + name[int(pred)] for true, pred in zip(true_labels, pred_labels)]
@@ -239,8 +256,8 @@ def k_fold(data_x, data_y, num_epochs, learning_rate, batch_size, k=10):
     return train_l_sum / k, valid_l_sum / k
 
 
-num_epochs = 10
-lr = 0.0001
+num_epochs = 25
+lr = 0.0012
 batch_size = 128
 
 train_l, valid_l = k_fold(data_x, data_y, num_epochs, lr, batch_size)

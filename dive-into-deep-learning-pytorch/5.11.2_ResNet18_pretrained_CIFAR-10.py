@@ -295,12 +295,8 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
 
 
 num_epochs = 1
-lr = 0.0001
+lr = 0.00005
 batch_size = 128
-
-# num_epochs = 15
-# lr = 0.0002
-# batch_size = 128
 
 i = 0
 folder = KFold(n_splits=10, shuffle=True)

@@ -14,6 +14,12 @@ plt.rcParams['font.sans-serif']=['SimHei']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False  # 用来正常显示负号
 from PIL import Image
 
+import logging
+LOG_FORMAT = "%(asctime)s - %(message)s"
+logging.basicConfig(filename=time.strftime("%Y-%m-%d %H%M%S",time.localtime(time.time()))+'.log',
+	level=logging.INFO, format=LOG_FORMAT)
+# logging.info("haha")
+
 
 def show_images(images, labels):
     _, figs = plt.subplots(6, int(len(images)/6), figsize=(12, 12))
@@ -206,14 +212,20 @@ def train(x_train, y_train, x_valid, y_valid, num_epochs, learning_rate, batch_s
         print('Epoch:%3d' % (epoch + 1), '| batch train loss: %.4f' % loss.data.cpu().numpy(),
               '| batch train accuracy: %.4f' % train_accuracy, '| time: %.3f' % (time_end - time_begin), 's')
 
-    plt.plot(train_accuracy_list, lw=1)
-    plt.xlabel('Steps')
-    plt.legend(['Batch Train Accuracy'])
-    plt.show()
-    plt.pause(0.01)
+        if np.mod(epoch, 5) == 4:
+            plt.plot(train_accuracy_list, lw=1)
+            plt.xlabel('Steps')
+            plt.legend(['Batch Train Accuracy'])
+            plt.savefig(time.strftime("%Y-%m-%d %H%M%S", time.localtime(time.time())) + '.png', dpi=200)
+            plt.show()
+            plt.pause(0.01)
 
-    accuracy_train = evaluate_accuracy(data_iter, net)
-    accuracy_test = evaluate_accuracy(test_iter, net)
+            accuracy_train = evaluate_accuracy(data_iter, net)
+            accuracy_test = evaluate_accuracy(test_iter, net)
+
+            print('Epoch:%3d, train accuracy: %.4f, test accuracy: %.4f' % (epoch + 1, accuracy_train, accuracy_test))
+            logging.info('Epoch:%3d, train accuracy: %.4f, test accuracy: %.4f' % (epoch + 1, accuracy_train, accuracy_test))
+
 
     for step, (b_x_i, b_y) in enumerate(test_iter):
         b_x = get_image(b_x_i)
@@ -256,7 +268,7 @@ def k_fold(data_x, data_y, num_epochs, learning_rate, batch_size, k=10):
     return train_l_sum / k, valid_l_sum / k
 
 
-num_epochs = 25
+num_epochs = 30
 lr = 0.0012
 batch_size = 128
 

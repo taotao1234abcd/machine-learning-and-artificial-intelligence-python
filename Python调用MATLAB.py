@@ -32,10 +32,10 @@ time_end = time.time()
 print(time_end - time_start)
 time_start = time.time()
 
-# y = eng.hanshuming(matlab.double([1,2]))
-# out = eng.hanshuming(matlab.double(bus.tolist()),matlab.double(line.tolist()))
+# y = eng.函数名(matlab.double([1,2]))
+# out = eng.函数名(matlab.double(bus.tolist()),matlab.double(line.tolist()))
 
-out1, out2 = eng.hanshuming(matlab.double(bus.tolist()),matlab.double(line.tolist()),nargout=2)
+out1, out2 = eng.函数名(matlab.double(bus.tolist()),matlab.double(line.tolist()),nargout=2)
 # eng.plot(matlab.double(out))
 out1 = np.asarray(out1)
 

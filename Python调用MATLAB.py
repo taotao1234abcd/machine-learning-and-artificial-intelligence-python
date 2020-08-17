@@ -1,12 +1,34 @@
 
 
-# ¹¤³ÌĞèÒªÊ¹ÓÃ±¾µØ»·¾³µÄ Python£¬ĞéÄâ»·¾³µÄ Python ²»ĞĞ
+# å·¥ç¨‹éœ€è¦ä½¿ç”¨æœ¬åœ°ç¯å¢ƒçš„ Pythonï¼Œè™šæ‹Ÿç¯å¢ƒçš„ Python ä¸è¡Œ
 #
-# ½«°üº¬ Python ½âÊÍÆ÷µÄÎÄ¼ş¼ĞÌí¼Óµ½ÄúµÄ MATLAB µÄÂ·¾¶£¨Èç¹ûÉĞÎ´ÔÚÂ·¾¶ÖĞ£©
+# å°†åŒ…å« Python è§£é‡Šå™¨çš„æ–‡ä»¶å¤¹æ·»åŠ åˆ°æ‚¨çš„ MATLAB çš„è·¯å¾„ï¼ˆå¦‚æœå°šæœªåœ¨è·¯å¾„ä¸­ï¼‰
 
-# ÔÚ MATLAB ÃüÁîÌáÊ¾·ûÏÂ
+# åœ¨ MATLAB å‘½ä»¤æç¤ºç¬¦ä¸‹
 # cd (fullfile(matlabroot,'extern','engines','python'))
 # system('python setup.py install')
+
+# é»˜è®¤æƒ…å†µä¸‹ï¼Œå®‰è£…ç¨‹åºå°†åœ¨ matlabroot\extern\engines\python æ–‡ä»¶å¤¹ç¼–è¯‘ç”¨äº PythonÂ® çš„å¼•æ“ APIã€‚å®‰è£…ç¨‹åºå°†å¼•æ“å®‰è£…åœ¨é»˜è®¤çš„ Python æ–‡ä»¶å¤¹ä¸­ã€‚å¦‚æœæ‚¨æ²¡æœ‰è¿™äº›æ–‡ä»¶å¤¹çš„å†™å…¥æƒé™ï¼Œè¯·é€‰æ‹©ä»¥ä¸‹éé»˜è®¤é€‰é¡¹ä¹‹ä¸€ã€‚å¦‚æœå®‰è£…åœ¨å¦ä¸€ä¸ªæ–‡ä»¶å¤¹ä¸­ï¼Œè¯·å°† PYTHONPATH å˜é‡æ›´æ–°ä¸ºè¯¥æ–‡ä»¶å¤¹çš„ä½ç½®ã€‚
+# 
+# ä¸‹é¢æ˜¯ç¼–è¯‘å’Œå®‰è£…å¼•æ“ API çš„é€‰é¡¹ä»¥åŠåœ¨æ“ä½œç³»ç»Ÿæç¤ºç¬¦ä¸‹è¾“å…¥çš„å‘½ä»¤ã€‚
+# 
+# åœ¨éé»˜è®¤æ–‡ä»¶å¤¹ä¸­ç¼–è¯‘ï¼Œåœ¨é»˜è®¤æ–‡ä»¶å¤¹ä¸­å®‰è£…
+# å¦‚æœæ‚¨ä¸å…·å¤‡åœ¨ MATLABÂ® æ–‡ä»¶å¤¹ä¸­ç¼–è¯‘å¼•æ“çš„å†™å…¥æƒé™ï¼Œè¯·ä½¿ç”¨éé»˜è®¤æ–‡ä»¶å¤¹ builddirã€‚
+# 
+# cd "matlabroot\extern\engines\python"
+# python setup.py build --build-base="builddir" install
+# åœ¨é»˜è®¤æ–‡ä»¶å¤¹ä¸­ç¼–è¯‘ï¼Œåœ¨éé»˜è®¤æ–‡ä»¶å¤¹ä¸­å®‰è£…
+# å¦‚æœæ‚¨ä¸å…·å¤‡åœ¨é»˜è®¤çš„ Python æ–‡ä»¶å¤¹ä¸­å®‰è£…å¼•æ“çš„å†™å…¥æƒé™ï¼Œè¯·ä½¿ç”¨éé»˜è®¤æ–‡ä»¶å¤¹ installdirã€‚
+# 
+# cd "matlabroot\extern\engines\python"
+# python setup.py install --prefix="installdir"
+# è¦åœ¨ Python åŒ…çš„æœç´¢è·¯å¾„ä¸­åŒ…å« installdirï¼Œè¯·å°† installdir æ·»åŠ åˆ° PYTHONPATH ç¯å¢ƒå˜é‡ã€‚
+# 
+# åœ¨éé»˜è®¤æ–‡ä»¶å¤¹ä¸­ç¼–è¯‘å’Œå®‰è£…
+# å¦‚æœæ‚¨å¯¹ MATLAB æ–‡ä»¶å¤¹å’Œé»˜è®¤çš„ Python æ–‡ä»¶å¤¹éƒ½æ²¡æœ‰å†™å…¥æƒé™ï¼Œåˆ™å¯ä»¥æŒ‡å®šéé»˜è®¤æ–‡ä»¶å¤¹ã€‚å¯¹äºç¼–è¯‘æ–‡ä»¶å¤¹ï¼Œä½¿ç”¨ builddirï¼Œå¯¹äºå®‰è£…æ–‡ä»¶å¤¹ï¼Œä½¿ç”¨ installdirã€‚
+# 
+# cd "matlabroot\extern\engines\python"
+# python setup.py build --build-base="builddir" install --prefix="installdir"
 
 import time
 
@@ -32,10 +54,10 @@ time_end = time.time()
 print(time_end - time_start)
 time_start = time.time()
 
-# y = eng.º¯ÊıÃû(matlab.double([1,2]))
-# out = eng.º¯ÊıÃû(matlab.double(bus.tolist()),matlab.double(line.tolist()))
+# y = eng.å‡½æ•°å(matlab.double([1,2]))
+# out = eng.å‡½æ•°å(matlab.double(bus.tolist()),matlab.double(line.tolist()))
 
-out1, out2 = eng.º¯ÊıÃû(matlab.double(bus.tolist()),matlab.double(line.tolist()),nargout=2)
+out1, out2 = eng.å‡½æ•°å(matlab.double(bus.tolist()),matlab.double(line.tolist()),nargout=2)
 # eng.plot(matlab.double(out))
 out1 = np.asarray(out1)
 
@@ -48,9 +70,9 @@ print(time_end - time_start)
 
 
 
-# ´Ó Python µ÷ÓÃ MATLAB º¯Êı
+# ä» Python è°ƒç”¨ MATLAB å‡½æ•°
 
-# Ê¹ÓÃÒıÇæ´Ó Python µ÷ÓÃ MATLAB µÄ sqrt º¯Êı
+# ä½¿ç”¨å¼•æ“ä» Python è°ƒç”¨ MATLAB çš„ sqrt å‡½æ•°
 # sqrt import matlab.engine
 # eng = matlab.engine.start_matlab()
 # ret = eng.sqrt(4.0)
@@ -61,23 +83,23 @@ print(time_end - time_start)
 
 #
 #
-# ½«Êı×é·ÅÈë MATLAB ¹¤×÷Çø
+# å°†æ•°ç»„æ”¾å…¥ MATLAB å·¥ä½œåŒº
 
-# ÔÚ Python ÖĞ´´½¨Ò»¸öÊı×é, ²¢½«Æä·ÅÈë MATLAB ¹¤×÷Çø¡£
+# åœ¨ Python ä¸­åˆ›å»ºä¸€ä¸ªæ•°ç»„, å¹¶å°†å…¶æ”¾å…¥ MATLAB å·¥ä½œåŒºã€‚
 # import matlab.engine
 # eng = matlab.engine.start_matlab()
 # px = eng.linspace(0.0,6.28,1000)
-# # pxÊÇÒ»¸ö matlab Êı×é, µ«eng.linspaceÆä·µ»Ø¸ø python¡£
-# # ÒªÔÚ MATLAB ÖĞÊ¹ÓÃËü, Çë½«ÕóÁĞ·ÅÈë MATLAB ¹¤×÷Çø¡£
+# # pxæ˜¯ä¸€ä¸ª matlab æ•°ç»„, ä½†eng.linspaceå…¶è¿”å›ç»™ pythonã€‚
+# # è¦åœ¨ MATLAB ä¸­ä½¿ç”¨å®ƒ, è¯·å°†é˜µåˆ—æ”¾å…¥ MATLAB å·¥ä½œåŒºã€‚
 # eng.workspace['mx'] = px
-# ½«ÌõÄ¿Ìí¼Óµ½ÒıÇæ workspace ×ÖµäÊ±, Ò²»á´´½¨Ò»¸ö matlab ±äÁ¿¡£
-# ÒıÇæ½«Êı¾İ×ª»»Îª MATLAB Êı¾İÀàĞÍ¡£
+# å°†æ¡ç›®æ·»åŠ åˆ°å¼•æ“ workspace å­—å…¸æ—¶, ä¹Ÿä¼šåˆ›å»ºä¸€ä¸ª matlab å˜é‡ã€‚
+# å¼•æ“å°†æ•°æ®è½¬æ¢ä¸º MATLAB æ•°æ®ç±»å‹ã€‚
 #
 #
 #
-# ´Ó MATLAB ¹¤×÷Çø»ñÈ¡Êı¾İ 
+# ä» MATLAB å·¥ä½œåŒºè·å–æ•°æ® 
 
-# ´Ó MATLAB ¹¤×÷Çø»ñÈ¡pi , ²¢½«Æä¸´ÖÆµ½ python ±äÁ¿¡£
+# ä» MATLAB å·¥ä½œåŒºè·å–pi , å¹¶å°†å…¶å¤åˆ¶åˆ° python å˜é‡ã€‚
 # import matlab.engine
 # eng = matlab.engine.start_matlab()
 # eng.eval('a = pi;',nargout=0)

@@ -3,6 +3,7 @@
 # 工程需要使用本地环境的 Python，虚拟环境的 Python 不行
 #
 # 将包含 Python 解释器的文件夹添加到您的 MATLAB 的路径（如果尚未在路径中）
+# MATLAB R2018b 需要搭配 Python 3.6 使用，具体版本匹配要求见 matlabroot\extern\engines\python\setup.py 中所写
 
 # 在 MATLAB 命令提示符下
 # cd (fullfile(matlabroot,'extern','engines','python'))
